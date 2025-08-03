@@ -26,36 +26,32 @@ app.get("/api/hello", function (req, res) {
 
 // Challenge
 app.get("/api/:date?", (req, res) => {
-  const date = req.params.date;
-  let unixFormat, utcFormat, dateObj;
-  let isUnix = /^\d+$/.test(date);
-  // Check if date is undefined or empty
-  if (!date) {
+  let dateString = req.params.date;
+  let dateObj;
+
+  // If no date parameter, use current date
+  if (!dateString) {
     dateObj = new Date();
+  } else if (/^\d+$/.test(dateString)) {
+    // If it's all digits, treat as unix ms timestamp
+    // Parse as number since new Date('1451001600000') and new Date(1451001600000) behave differently
+    dateObj = new Date(Number(dateString));
+  } else {
+    // Otherwise, treat as a date string
+    dateObj = new Date(dateString);
   }
 
-  else if (date && isUnix) {
-    unixFormat = parseInt(date);
-    dateObj = new Date(parseInt(date));
+  // Check for invalid date
+  if (dateObj.toString() === 'Invalid Date') {
+    res.json({ error: "Invalid Date" });
+    return;
   }
-
-  else if (date && !isUnix) {
-    // Check if date is in valid format
-    dateObj = new Date(date);
-    // If date is invalid, return error
-    if (dateObj.toString() === 'Invalid Date') {
-       res.json({ error: 'Invalid Date' });
-        return;
-      }
-      unixFormat = dateObj.getTime();
-      utcFormat = dateObj.toUTCString(); 
-  }
-  // Return unix and utc format
- res.json({
-    unix: unixFormat,
-    utc: utcFormat
+  res.json({
+    unix: dateObj.getTime(),
+    utc: dateObj.toUTCString()
   });
 });
+
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
