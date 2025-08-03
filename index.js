@@ -24,7 +24,38 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+// Challenge
+app.get("/api/:date?", (req, res) => {
+  const date = req.params.date;
+  let unixFormat, utcFormat, dateObj;
+  let isUnix = /^\d+$/.test(date);
+  // Check if date is undefined or empty
+  if (!date) {
+    dateObj = new Date();
+  }
 
+  else if (date && isUnix) {
+    unixFormat = parseInt(date);
+    dateObj = new Date(parseInt(date));
+  }
+
+  else if (date && !isUnix) {
+    // Check if date is in valid format
+    dateObj = new Date(date);
+    // If date is invalid, return error
+    if (dateObj.toString() === 'Invalid Date') {
+       res.json({ error: 'Invalid Date' });
+        return;
+      }
+      unixFormat = dateObj.getTime();
+      utcFormat = dateObj.toUTCString(); 
+  }
+  // Return unix and utc format
+ res.json({
+    unix: unixFormat,
+    utc: utcFormat
+  });
+});
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
